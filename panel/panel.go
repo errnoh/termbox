@@ -60,7 +60,7 @@ func NewUnbuffered(r image.Rectangle) *Unbuffered {
 }
 
 func (panel *Unbuffered) SetCursor(x, y int) {
-	if panel.Contains(x, y) {
+	if panel.contains(x, y) {
 		termbox.SetCursor(panel.r.Min.X+x, panel.r.Min.Y+y)
 	}
 }
@@ -77,7 +77,7 @@ func (panel *Unbuffered) Area(r image.Rectangle) *Unbuffered {
 }
 
 func (panel *Unbuffered) At(x, y int) termbox.Cell {
-	if !panel.Contains(x, y) {
+	if !panel.contains(x, y) {
 		return termbox.Cell{}
 	}
 	width, _ := termbox.Size()
@@ -88,13 +88,13 @@ func (panel *Unbuffered) Bounds() image.Rectangle {
 	return panel.r
 }
 
-func (panel *Unbuffered) Contains(x, y int) bool {
+func (panel *Unbuffered) contains(x, y int) bool {
 	r := image.Rect(0, 0, panel.r.Dx(), panel.r.Dy())
 	return image.Point{x, y}.In(r)
 }
 
 func (panel *Unbuffered) SetCell(x, y int, ch rune, fg, bg termbox.Attribute) {
-	if panel.Contains(x, y) {
+	if panel.contains(x, y) {
 		termbox.SetCell(panel.r.Min.X+x, panel.r.Min.Y+y, ch, fg, bg)
 	}
 }
@@ -130,7 +130,7 @@ func NewBuffered(r image.Rectangle) *Buffered {
 }
 
 func (panel *Buffered) SetCell(x, y int, ch rune, fg, bg termbox.Attribute) {
-	if panel.Contains(x, y) {
+	if panel.contains(x, y) {
 		panel.buffer[y*panel.r.Dx()+x] = termbox.Cell{ch, fg, bg}
 	}
 }
@@ -144,6 +144,13 @@ func (panel *Buffered) Clear() *Buffered {
 		panel.buffer[i] = termbox.Cell{' ', 0, 0}
 	}
 	return panel
+}
+
+func (panel *Buffered) At(x, y int) termbox.Cell {
+	if !panel.contains(x, y) {
+		return termbox.Cell{}
+	}
+	return panel.buffer[y*panel.r.Dx()+x]
 }
 
 func (panel *Buffered) Draw() {
