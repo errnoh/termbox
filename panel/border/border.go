@@ -9,6 +9,8 @@ import (
 	termbox "github.com/nsf/termbox-go"
 )
 
+// Draws contents and borders of each panel in p.
+// ( Similar to panel.DrawAll but draws borders as well )
 func DrawAll(fg, bg termbox.Attribute, p ...panel.Panel) {
 	for _, p2 := range p {
 		if v, ok := p2.(panel.Drawer); ok {
@@ -40,6 +42,7 @@ func Add(fg, bg termbox.Attribute, p panel.Panel) panel.Panel {
 	return p
 }
 
+// NOTE: WIP
 func borderClash(x, y int, char rune, side int) rune {
 	m := panel.MainScreen()
 	orig := m.At(x, y).Ch

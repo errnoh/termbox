@@ -65,6 +65,8 @@ func (panel *Unbuffered) SetCursor(x, y int) {
 	}
 }
 
+// Returns unbuffered panel that contains area of 'panel' r specifies.
+// NOTE: At current state *Unbuffered always writes to main termbox buffer.
 func (panel *Unbuffered) Area(r image.Rectangle) *Unbuffered {
 	newr := image.Rect(panel.r.Min.X+r.Min.X, panel.r.Min.Y+r.Min.Y, panel.r.Min.X+r.Max.X, panel.r.Min.Y+r.Max.Y)
 	if newr.In(panel.r) {
