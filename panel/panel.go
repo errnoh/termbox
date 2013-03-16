@@ -15,6 +15,8 @@ type Panel interface {
 	At(x, y int) termbox.Cell
 	SetCell(x, y int, ch rune, fg, bg termbox.Attribute)
 	Move(deltax, deltay int)
+	Border() termbox.Cell
+	SetBorder(termbox.Cell)
 }
 
 type Drawer interface {
@@ -50,12 +52,14 @@ func Write(panel Panel, b []byte) (n int, err error) {
 // Panel that writes directly to termbox buffer.
 // *Unbuffered methods can be used directly with *Buffered as well.
 type Unbuffered struct {
-	r image.Rectangle
+	r      image.Rectangle
+	border termbox.Cell
 }
 
-func NewUnbuffered(r image.Rectangle) *Unbuffered {
+func NewUnbuffered(r image.Rectangle, border termbox.Cell) *Unbuffered {
 	return &Unbuffered{
-		r: r,
+		r:      r,
+		border: border,
 	}
 }
 
@@ -65,12 +69,20 @@ func (panel *Unbuffered) SetCursor(x, y int) {
 	}
 }
 
+func (panel *Unbuffered) Border() termbox.Cell {
+	return panel.border
+}
+
+func (panel *Unbuffered) SetBorder(style termbox.Cell) {
+	panel.border = style
+}
+
 // Returns unbuffered panel that contains area of 'panel' r specifies.
 // NOTE: At current state *Unbuffered always writes to main termbox buffer.
 func (panel *Unbuffered) Area(r image.Rectangle) *Unbuffered {
 	newr := image.Rect(panel.r.Min.X+r.Min.X, panel.r.Min.Y+r.Min.Y, panel.r.Min.X+r.Max.X, panel.r.Min.Y+r.Max.Y)
 	if newr.In(panel.r) {
-		return NewUnbuffered(newr)
+		return NewUnbuffered(newr, termbox.Cell{})
 	}
 	return nil
 
@@ -117,14 +129,14 @@ type Buffered struct {
 func MainScreen() *Buffered {
 	width, height := termbox.Size()
 	return &Buffered{
-		Unbuffered: Unbuffered{image.Rect(0, 0, width, height)},
+		Unbuffered: Unbuffered{r: image.Rect(0, 0, width, height)},
 		buffer:     termbox.CellBuffer(),
 	}
 }
 
-func NewBuffered(r image.Rectangle) *Buffered {
+func NewBuffered(r image.Rectangle, border termbox.Cell) *Buffered {
 	return &Buffered{
-		Unbuffered: Unbuffered{r},
+		Unbuffered: Unbuffered{r: r, border: border},
 		buffer:     make([]termbox.Cell, r.Dx()*r.Dy()),
 	}
 }
@@ -168,5 +180,10 @@ func (panel *Buffered) Draw() {
 	for y := 0; y < target.Dy(); y++ {
 		copy(main.buffer[(target.Min.Y+y)*main.r.Dx()+target.Min.X:(target.Min.Y+y)*main.r.Dx()+target.Max.X], panel.buffer[(row+y)*panel.r.Dx()+col:(row+y)*panel.r.Dx()+col+target.Dx()])
 	}
+
+	if panel.border.Ch != 0 {
+		DrawBorder(panel)
+	}
+
 	return
 }

@@ -6,7 +6,6 @@ package main
 
 import (
 	"github.com/errnoh/termbox/panel"
-	"github.com/errnoh/termbox/panel/border"
 	termbox "github.com/nsf/termbox-go"
 	"image"
 )
@@ -14,7 +13,7 @@ import (
 var panels []panel.Panel
 
 func newOcto() *panel.Buffered {
-	p := panel.NewBuffered(image.Rect(10, 30, 50, 54)).Clear()
+	p := panel.NewBuffered(image.Rect(10, 30, 50, 54), termbox.Cell{'d', 2, 0}).Clear()
 	p.Write(octo)
 	panels = append(panels, p)
 	return p
@@ -28,9 +27,9 @@ func main() {
 loop:
 	for {
 		m.Clear().Write(help)
-		border.DrawAll(0, 0, panels...)
+		panel.DrawAll(panels...)
 		if len(panels) > 0 {
-			border.Add(2, 0, p)
+			p.SetBorder(termbox.Cell{'d', 2, 0})
 		}
 		termbox.Flush()
 
@@ -40,6 +39,7 @@ loop:
 			case termbox.KeyEsc:
 				break loop
 			case termbox.KeyTab:
+				p.SetBorder(termbox.Cell{'s', 0, 0})
 				p = panels[0]
 				Top(p)
 			case termbox.KeyArrowDown:
@@ -51,6 +51,7 @@ loop:
 			case termbox.KeyArrowRight:
 				p.Move(1, 0)
 			case termbox.KeyInsert:
+				p.SetBorder(termbox.Cell{'s', 0, 0})
 				p = newOcto()
 				Top(p)
 			case termbox.KeyDelete:
