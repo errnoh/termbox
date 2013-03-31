@@ -52,6 +52,8 @@ func Write(panel Panel, b []byte) (n int, err error) {
 // Panel that writes directly to termbox buffer.
 // *Unbuffered methods can be used directly with *Buffered as well.
 type Unbuffered struct {
+        // TODO: Possibly force unbuffered to have a pointer into some Buffered
+        //       so that one can Write to Unbuffered area of Buffered panel.
 	r      image.Rectangle
 	border termbox.Cell
 }
@@ -139,6 +141,10 @@ func NewBuffered(r image.Rectangle, border termbox.Cell) *Buffered {
 		Unbuffered: Unbuffered{r: r, border: border},
 		buffer:     make([]termbox.Cell, r.Dx()*r.Dy()),
 	}
+}
+
+func (panel *Buffered) Buffer() []termbox.Cell {
+	return panel.buffer
 }
 
 func (panel *Buffered) SetCell(x, y int, ch rune, fg, bg termbox.Attribute) {
